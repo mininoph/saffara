@@ -1,0 +1,222 @@
+بالتأكيد، هذا ملخص شامل ومنظم يمكنك إعطاؤه لأي أداة أو مطور ليكمل المشروع من نفس النقطة.
+
+ملخص المشروع - Saffara
+معلومات عامة
+المشروع: موقع أخبار كرة القدم Saffara
+الموقع والبانل على دومينين منفصلين.
+لوحة التحكم مكتوبة بـ PHP + PDO.
+يوجد ملف config.php في الجذر الرئيسي.
+يوجد مجلد backend/ يستخدم كواجهة API بين الموقع والبانل.
+لا نستخدم Bootstrap أو Framework، بل نفس أسلوب البرمجة الموجود في channels.php.
+نفضل أن تكون كل إدارة داخل ملف واحد فقط (وليس add/edit/delete منفصلة).
+الهدف الحالي
+
+إنشاء نظام احترافي لإدارة انتقالات اللاعبين.
+
+الهيكل المتفق عليه
+admin/
+│
+├── clubs.php
+├── transfers.php
+│
+backend/
+├── get_transfers.php
+├── get_transfer.php
+│
+uploads/
+├── clubs/
+└── players/
+قاعدة البيانات
+جدول clubs
+CREATE TABLE clubs (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    api_football_id INT NULL,
+    name VARCHAR(150) NOT NULL,
+    logo VARCHAR(255) NOT NULL,
+    country VARCHAR(100) DEFAULT NULL,
+    league VARCHAR(100) DEFAULT NULL,
+    is_active TINYINT(1) DEFAULT 1,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+جدول transfers
+
+يعتمد على جدول clubs ولا يخزن أسماء الأندية مباشرة.
+
+الأعمدة المهمة:
+
+id
+player_name
+player_image
+old_club_id
+new_club_id
+transfer_type
+status
+fee
+description
+created_at
+سبب استخدام old_club_id و new_club_id
+
+بدلاً من تخزين:
+
+old_team
+new_team
+old_logo
+new_logo
+
+يتم تخزين معرف النادي فقط.
+
+ثم يتم استخدام JOIN مع جدول clubs.
+
+الفوائد:
+
+لا يوجد تكرار للبيانات.
+تعديل شعار النادي مرة واحدة فقط.
+تعديل اسم النادي مرة واحدة فقط.
+قابل للتوسع لاحقاً.
+صفحة clubs.php
+
+ملف واحد فقط.
+
+تحتوي على:
+
+عرض جميع الأندية.
+إضافة نادي.
+تعديل نادي.
+حذف نادي.
+البحث.
+رفع شعار النادي.
+إحصائية عدد الأندية.
+صفحة transfers.php
+
+ملف واحد فقط.
+
+تحتوي على:
+
+عرض الانتقالات.
+إضافة انتقال.
+تعديل انتقال.
+حذف انتقال.
+البحث.
+رفع صورة اللاعب.
+
+النادي السابق والجديد عبارة عن Select يتم قراءته من جدول clubs.
+
+Backend
+get_transfers.php
+
+يعيد JSON.
+
+مثال:
+
+{
+  "success": true,
+  "count": 20,
+  "data": [
+    {
+      "id":1,
+      "player_name":"محمد صلاح",
+      "player_image":"...",
+      "old_team":"ليفربول",
+      "old_logo":"...",
+      "new_team":"الهلال",
+      "new_logo":"...",
+      "status":"رسمي",
+      "fee":"80 مليون €",
+      "description":"...",
+      "created_at":"..."
+    }
+  ]
+}
+get_transfer.php
+
+يعيد انتقالاً واحداً حسب id.
+
+الموقع
+
+سيتم إنشاء:
+
+transfers.php
+transfer.php
+
+البيانات تأتي من:
+
+backend/get_transfers.php
+backend/get_transfer.php
+رفع الصور
+uploads/
+    clubs/
+    players/
+استيراد الأندية
+
+الفكرة المتفق عليها:
+
+داخل clubs.php يوجد زر:
+
+استيراد الأندية
+
+يعتمد على API-Football.
+
+لكن لا يتم استخدامه يومياً.
+
+يستخدم مرة واحدة فقط.
+
+يقوم بـ:
+
+جلب الأندية.
+جلب الشعارات.
+تنزيل الشعارات.
+حفظها داخل uploads/clubs.
+إدخالها داخل جدول clubs.
+تجاهل الأندية الموجودة مسبقاً.
+API-Football
+
+المستخدم لديه اشتراك مجاني.
+
+100 طلب يومياً.
+
+ويستخدمه بالفعل لجلب:
+
+المباريات.
+النتائج.
+
+لذلك يجب عدم استهلاك الطلبات بشكل مستمر.
+
+استيراد الأندية يتم مرة واحدة فقط.
+
+اقتراح إضافي تم الاتفاق عليه
+
+إضافة زر:
+
+تحديث الشعارات
+
+يقوم بتحديث شعارات الأندية الموجودة فقط.
+
+تصميم لوحة التحكم
+
+يجب أن يكون مطابقاً لملف:
+
+channels.php
+
+نفس:
+
+التصميم.
+أسلوب البرمجة.
+CSS.
+PDO.
+بدون Bootstrap.
+أسلوب البرمجة المطلوب
+صفحة واحدة لكل قسم.
+PDO Prepared Statements.
+منع SQL Injection.
+حذف الصور القديمة عند التعديل.
+إعادة تسمية الصور تلقائياً.
+التحقق من نوع الصور.
+البحث.
+Pagination عند الحاجة.
+Clean Code.
+المرحلة القادمة
+إنشاء clubs.php كاملة.
+إنشاء transfers.php كاملة.
+إنشاء get_transfers.php.
+إنشاء get_transfer.php.
+إنشاء صفحة الانتقالات في الموقع.
